@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Set the end time to be 30 minutes from now
-end_time=$(($(date +%s)+1800))
-
 if kubectl get nodes &> /dev/null; then
   status="available"
   available_start_time=$(date +%s)
@@ -13,6 +10,9 @@ fi
 
 # Create an empty data.json file
 echo '[{"group": "apiserver", "data":[]}]' > data.json
+
+echo "Start serving on http://localhost:8080"
+python -m http.server 8080 &
 
 # Add an entry to the data.json
 function addRecord(){
@@ -32,7 +32,8 @@ function addRecord(){
     echo "Updated data.json"
 }
 
-while [[ $(date +%s) -lt $end_time ]]; do
+while true
+do
   if kubectl  get --raw='/readyz' &> /dev/null; then
     # If the API server is available, update the status and time range
     if [[ $status == "unavailable" ]]; then
