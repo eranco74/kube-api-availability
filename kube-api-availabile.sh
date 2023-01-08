@@ -6,7 +6,7 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 DATA_DIR=static
 DATA_FILE=$DATA_DIR/data.json
 
-if kubectl get nodes &> /dev/null; then
+if kubectl get --raw='/readyz' &> /dev/null; then
   status="available"
   available_start_time=$(date +%s)
 else
