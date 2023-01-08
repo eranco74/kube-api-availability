@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Make sure we don't leave a running process behind
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+DATA_DIR=static
+DATA_FILE=$DATA_DIR/data.json
+
 if kubectl get nodes &> /dev/null; then
   status="available"
   available_start_time=$(date +%s)
@@ -9,10 +15,10 @@ else
 fi
 
 # Create an empty data.json file
-echo '[{"group": "apiserver", "data":[]}]' > data.json
+echo '[{"group": "apiserver", "data":[]}]' > $DATA_FILE
 
 echo "Start serving on http://localhost:8080"
-python -m http.server 8080 &
+python -m http.server 8080 --directory $DATA_DIR &
 
 # Add an entry to the data.json
 function addRecord(){
@@ -27,9 +33,9 @@ function addRecord(){
           "val": $status
           }
         ]
-    }]' data.json > tmp.json
-    mv -f tmp.json data.json   
-    echo "Updated data.json"
+    }]' $DATA_FILE > tmp.json
+    mv -f tmp.json $DATA_FILE
+    echo "Updated $DATA_FILE"
 }
 
 while true
